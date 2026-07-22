@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Business Task</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0b0f19;--card:#131b2e;--card2:#1a2540;--border:#243050;
+--gold:#f0b90b;--gold-l:#ffd54f;--gold-d:#b8860b;
+--green:#00e676;--red:#ff3d57;--blue:#29b6f6;
+--txt:#e8ecf4;--mut:#5a6b88;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--txt)}
+
+/* CANVAS BG */
+#bgC{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* SCREEN WRAPPER */
+#app{position:relative;z-index:1;width:100%;height:100%;overflow:hidden}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:20px 16px 90px;-webkit-overflow-scrolling:touch}
+.scr.on{display:flex;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(240,185,11,.3)}50%{box-shadow:0 0 30px rgba(240,185,11,.6)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin3d{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+@keyframes breathe{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.04) scaleX(.98)}}
+@keyframes armL{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
+@keyframes armR{0%,100%{transform:rotate(20deg)}50%{transform:rotate(-20deg)}}
+@keyframes legL{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes legR{0%,100%{transform:rotate(12deg)}50%{transform:rotate(-12deg)}}
+@keyframes walkX{0%,100%{transform:translateX(0)}50%{transform:translateX(25px)}}
+@keyframes runX{0%,100%{transform:translateX(0)}50%{transform:translateX(50px)}}
+@keyframes confDrop{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(800deg);opacity:0}}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+@keyframes barFill{from{width:0}to{width:100%}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes slideD{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ====== SPLASH ====== */
+#splash{justify-content:center;align-items:center;gap:18px;background:var(--bg)}
+.sp-logo{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;font-size:42px;color:var(--bg);animation:glow 2s infinite,float 3s ease-in-out infinite}
+.sp-title{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;background:linear-gradient(135deg,var(--gold-l),var(--gold),var(--gold-d));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sp-sub{color:var(--mut);font-size:13px}
+.sp-bar{width:180px;height:4px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:8px}
+.sp-bar div{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:4px;animation:barFill 2s ease forwards}
+
+/* ====== AUTH ====== */
+#auth{justify-content:center;align-items:center;background:var(--bg)}
+.auth-box{width:100%;max-width:370px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:30px 22px;animation:pop .4s ease}
+.auth-tabs{display:flex;background:var(--card2);border-radius:12px;padding:4px;margin-bottom:22px}
+.auth-tab{flex:1;padding:10px;text-align:center;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:.3s;color:var(--mut)}
+.auth-tab.on{background:var(--gold);color:var(--bg)}
+.ig{margin-bottom:14px;position:relative}
+.ig i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:13px}
+.ig input{width:100%;padding:11px 12px 11px 38px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:.3s}
+.ig input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,185,11,.12)}
+.ref-w{display:none}.ref-w.show{display:block}
+.btn{width:100%;padding:13px;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.btn:active{transform:scale(.97)}
+.btn-g{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--bg);box-shadow:0 4px 18px rgba(240,185,11,.25)}
+.btn-g:hover{box-shadow:0 6px 28px rgba(240,185,11,.4)}
+.btn-o{background:transparent;border:1.5px solid var(--border);color:var(--txt)}
+.btn-o:hover{border-color:var(--gold);color:var(--gold)}
+.btn-gr{background:linear-gradient(135deg,#00e676,#00c853);color:var(--bg)}
+.btn-r{background:linear-gradient(135deg,#ff3d57,#d50000);color:#fff}
+.btn-sm{padding:8px 16px;font-size:11px;width:auto;border-radius:8px}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);animation:ripple .5s ease-out;pointer-events:none}
+
+/* ====== TOAST ====== */
+#toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;width:90%;max-width:340px}
+.toast{padding:11px 16px;border-radius:12px;font-size:12px;font-weight:600;animation:slideD .3s ease;pointer-events:auto;backdrop-filter:blur(8px);text-align:center}
+.toast-s{background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.25);color:var(--green)}
+.toast-e{background:rgba(255,61,87,.12);border:1px solid rgba(255,61,87,.25);color:var(--red)}
+.toast-i{background:rgba(240,185,11,.12);border:1px solid rgba(240,185,11,.25);color:var(--gold)}
+
+/* ====== DASHBOARD ====== */
+#dash{background:var(--bg);gap:14px}
+.dh{display:flex;justify-content:space-between;align-items:center}
+.dh h2{font-family:'Orbitron',monospace;font-size:16px;color:var(--gold)}
+.dh-av{width:38px;height:38px;border-radius:50%;background:var(--card2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:15px;cursor:pointer}
+.bal-card{background:linear-gradient(135deg,#1a1408,#261d08,#1a1408);border:1px solid rgba(240,185,11,.18);border-radius:18px;padding:22px;position:relative;overflow:hidden;animation:glow 3s infinite}
+.bal-card::after{content:'';position:absolute;top:-40%;right:-30%;width:160%;height:160%;background:radial-gradient(circle,rgba(240,185,11,.05) 0%,transparent 60%);pointer-events:none}
+.bal-lab{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.bal-amt{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--gold-l);margin:4px 0;display:flex;align-items:center;gap:6px}
+.bal-amt .ci{display:inline-block;animation:spin3d 3s linear infinite}
+.bal-sub{display:flex;gap:14px;margin-top:6px;font-size:10px;color:var(--mut)}
+.bal-sub b{color:var(--green)}
+.pbar{width:100%;height:7px;background:var(--card2);border-radius:7px;overflow:hidden;margin:8px 0 0}
+.pfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:7px;transition:width .5s}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qb{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 6px;text-align:center;cursor:pointer;transition:.3s}
+.qb:hover{border-color:var(--gold);transform:translateY(-2px)}
+.qb:active{transform:scale(.95)}
+.qb i{font-size:20px;display:block;margin-bottom:4px}
+.qb span{font-size:9px;color:var(--mut);font-weight:600}
+.stit{font-size:14px;font-weight:700;margin:6px 0 2px;display:flex;align-items:center;gap:6px}
+.stit i{color:var(--gold);font-size:13px}
+
+/* CHARACTER */
+.char-area{width:100%;height:150px;background:var(--card);border:1px solid var(--border);border-radius:18px;position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.char-gnd{position:absolute;bottom:0;width:100%;height:25px;background:linear-gradient(0deg,#151f0e,#0e170a);border-top:2px solid #2a3a1e}
+.sm{position:relative;width:50px;height:100px;transition:.4s}
+.sm.idle .sm-b{animation:breathe 3s ease-in-out infinite}
+.sm.walk{animation:walkX .8s ease-in-out infinite}
+.sm.walk .sm-al{animation:armL .5s ease-in-out infinite}
+.sm.walk .sm-ar{animation:armR .5s ease-in-out infinite}
+.sm.walk .sm-ll{animation:legL .5s ease-in-out infinite}
+.sm.walk .sm-lr{animation:legR .5s ease-in-out infinite}
+.sm.run{animation:runX .35s ease-in-out infinite}
+.sm.run .sm-al{animation:armL .25s ease-in-out infinite}
+.sm.run .sm-ar{animation:armR .25s ease-in-out infinite}
+.sm.run .sm-ll{animation:legL .25s ease-in-out infinite}
+.sm.run .sm-lr{animation:legR .25s ease-in-out infinite}
+.sm.sit{transform:translateY(18px)}
+.sm.sit .sm-al{transform:rotate(60deg)}
+.sm.sit .sm-ar{transform:rotate(-60deg)}
+.sm.sit .sm-ll{transform:rotate(70deg)}
+.sm.sit .sm-lr{transform:rotate(-70deg)}
+.sm-h{width:22px;height:22px;border-radius:50%;background:var(--gold);margin:0 auto;position:relative;box-shadow:0 0 8px rgba(240,185,11,.3)}
+.sm-h::before,.sm-h::after{content:'';position:absolute;width:3px;height:3px;background:var(--bg);border-radius:50%;top:8px}
+.sm-h::before{left:5px}.sm-h::after{right:5px}
+.sm-b{width:3px;height:30px;background:var(--gold);margin:2px auto;border-radius:2px}
+.sm-al,.sm-ar{width:3px;height:24px;background:var(--gold);border-radius:2px;position:absolute;top:28px;transform-origin:top center}
+.sm-al{left:12px}.sm-ar{right:12px}
+.sm-ll,.sm-lr{width:3px;height:28px;background:var(--gold);border-radius:2px;position:absolute;bottom:0;transform-origin:top center}
+.sm-ll{left:19px}.sm-lr{right:19px}
+.ca{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.ca button{padding:5px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--txt);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.ca button.on{border-color:var(--gold);color:var(--gold)}
+
+/* TASK CARDS */
+.tc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;transition:.3s;position:relative;overflow:hidden}
+.tc:active{transform:scale(.98)}
+.tc::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--gold);border-radius:0 3px 3px 0}
+.tc.done::before{background:var(--green)}
+.tc.done{opacity:.5;cursor:default}
+.tc-t{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.tc-n{font-weight:700;font-size:13px}
+.tc-r{font-family:'Orbitron',monospace;font-size:12px;color:var(--green);font-weight:700}
+.tc-d{font-size:10px;color:var(--mut);margin-bottom:6px}
+.tc-b{display:flex;justify-content:space-between;align-items:center}
+.tdf{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600}
+.tdf.easy{background:rgba(0,230,118,.1);color:var(--green)}
+.tdf.medium{background:rgba(240,185,11,.1);color:var(--gold)}
+.tdf.hard{background:rgba(255,61,87,.1);color:var(--red)}
+
+/* TEAM */
+.tmc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.tm-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.tm-i{flex:1}
+.tm-n{font-weight:700;font-size:13px}
+.tm-r{font-size:10px;color:var(--mut)}
+.tm-s{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600}
+.tm-s.onl{background:rgba(0,230,118,.1);color:var(--green)}
+.tm-s.off{background:rgba(255,61,87,.1);color:var(--red)}
+.tm-s.wait{background:rgba(240,185,11,.1);color:var(--gold)}
+
+/* ====== TASK PLAY ====== */
+#tplay{background:var(--bg);gap:14px}
+.tp-h{display:flex;justify-content:space-between;align-items:center}
+.tp-t{font-size:16px;font-weight:800}
+.tp-tm{font-family:'Orbitron',monospace;font-size:18px;color:var(--gold)}
+.sc-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.sc-txt{font-size:13px;line-height:1.8;margin-bottom:14px;white-space:pre-line}
+.opts{display:flex;flex-direction:column;gap:8px}
+.ob{width:100%;padding:12px 14px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;color:var(--txt);font-size:12px;font-family:inherit;cursor:pointer;text-align:left;transition:.3s;display:flex;align-items:center;gap:10px}
+.ob:active{transform:scale(.98)}
+.ob .ol{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;transition:.3s}
+.ob.ok{border-color:var(--green);background:rgba(0,230,118,.08);animation:pulse .3s}
+.ob.ok .ol{background:var(--green);color:var(--bg)}
+.ob.no{border-color:var(--red);background:rgba(255,61,87,.08);animation:shake .4s}
+.ob.no .ol{background:var(--red);color:#fff}
+.ob:disabled{cursor:default}
+
+/* ====== MODALS ====== */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;justify-content:center;align-items:center;padding:16px;backdrop-filter:blur(4px)}
+.mo.on{display:flex}
+.md{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:26px 22px;width:100%;max-width:380px;animation:pop .3s ease;max-height:80vh;overflow-y:auto;position:relative}
+.md-t{font-family:'Orbitron',monospace;font-size:16px;color:var(--gold);margin-bottom:14px;text-align:center}
+.md-c{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--mut);font-size:18px;cursor:pointer;padding:4px}
+.code-bx{background:var(--bg);border:2px dashed var(--border);border-radius:12px;padding:14px;text-align:center;margin:10px 0}
+.code-tx{font-family:'Orbitron',monospace;font-size:22px;color:var(--gold-l);letter-spacing:3px;word-break:break-all}
+.dep-amt{font-family:'Orbitron',monospace;font-size:26px;color:var(--gold-l);text-align:center;margin:14px 0}
+.ul{list-style:none;margin:12px 0}
+.ul li{padding:7px 0;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.ul li:last-child{border:none}
+.ul li i{color:var(--green);width:18px}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:none;z-index:50;padding:4px 0 max(env(safe-area-inset-bottom),4px)}
+.bnav.show{display:flex}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;padding:7px 0;cursor:pointer;transition:.2s;position:relative}
+.ni i{font-size:16px;color:var(--mut);transition:.2s;margin-bottom:2px}
+.ni span{font-size:8px;color:var(--mut);font-weight:600;transition:.2s}
+.ni.on i{color:var(--gold)}
+.ni.on span{color:var(--gold)}
+.ni.on::before{content:'';position:absolute;top:0;width:24px;height:2.5px;background:var(--gold);border-radius:0 0 3px 3px}
+.ni:active{transform:scale(.9)}
+
+/* CONFETTI */
+.cfp{position:fixed;z-index:9999;pointer-events:none;animation:confDrop 3s ease-in forwards}
+
+@media(min-width:480px){
+.scr{max-width:440px;margin:0 auto;left:50%;transform:translateX(-50%)}
+.bnav{max-width:440px;left:50%;transform:translateX(-50%);border-radius:16px 16px 0 0}
+}
+</style>
+</head>
+<body>
+<canvas id="bgC"></canvas>
+<div id="toasts"></div>
+
+<div id="app">
+<!-- SPLASH -->
+<div id="splash" class="scr on">
+  <div class="sp-logo"><i class="fas fa-briefcase"></i></div>
+  <div class="sp-title">BUSINESS TASK</div>
+  <div class="sp-sub">Dimag Lagao, Paise Kamao</div>
+  <div class="sp-bar"><div></div></div>
+</div>
+
+<!-- AUTH -->
+<div id="auth" class="scr">
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <div class="auth-tab on" onclick="authTab('login')">Login</div>
+      <div class="auth-tab" onclick="authTab('signup')">Sign Up</div>
+    </div>
+    <div id="loginF">
+      <div class="ig"><i class="fas fa-envelope"></i><input id="lE" placeholder="Email ya Phone"></div>
+      <div class="ig"><i class="fas fa-lock"></i><input id="lP" type="password" placeholder="Password"></div>
+      <button class="btn btn-g" onclick="doLogin()">Login Karo <i class="fas fa-arrow-right"></i></button>
+    </div>
+    <div id="signF" style="display:none">
+        <div style="text-align:center;margin-bottom:12px">
+  <span style="font-size:11px;color:var(--mut)">Referral code nahi hai? </span>
+  <span onclick="document.getElementById('sR').value='';document.getElementById('refW').classList.remove('show')" 
+        style="font-size:11px;color:var(--gold);cursor:pointer;font-weight:600;text-decoration:underline">
+    Skip karo
+  </span>
+</div>
+      <div class="ig"><i class="fas fa-user"></i><input id="sN" placeholder="Tumhara Naam"></div>
+      <div class="ig"><i class="fas fa-envelope"></i><input id="sE" placeholder="Email ya Phone"></div>
+      <div class="ig"><i class="fas fa-lock"></i><input id="sP" type="password" placeholder="Password (6+ chars)"></div>
+      <div class="ig ref-w" id="refW"><i class="fas fa-gift"></i><input id="sR" placeholder="Referral Code (optional)"></div>
+      <button class="btn btn-g" onclick="doSignup()">Account Banao <i class="fas fa-user-plus"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="scr">
+  <div class="dh">
+    <h2><i class="fas fa-briefcase"></i> Business Task</h2>
+    <div class="dh-av" id="dAv" onclick="openMo('profM')">U</div>
+  </div>
+  <div class="bal-card">
+    <div class="bal-lab">Total Balance</div>
+    <div class="bal-amt"><span class="ci">&#8377;</span><span id="bAmt">0.00</span></div>
+    <div class="bal-sub">
+      <span>Won: <b id="bWon">0</b></span>
+      <span>Ref: <b id="bRef">0</b></span>
+      <span>Dep: <b id="bDep">0</b></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--mut);margin-top:10px"><span>Withdrawal Target</span><span id="wdT">0 / 110</span></div>
+    <div class="pbar"><div class="pfill" id="wdP" style="width:0%"></div></div>
+  </div>
+  <div class="qa">
+    <div class="qb" onclick="openMo('depM')"><i class="fas fa-wallet" style="color:var(--gold)"></i><span>Deposit</span></div>
+    <div class="qb" onclick="openMo('wdM')"><i class="fas fa-money-bill-transfer" style="color:var(--green)"></i><span>Withdraw</span></div>
+    <div class="qb" onclick="openMo('refM')"><i class="fas fa-users" style="color:var(--blue)"></i><span>Refer</span></div>
+    <div class="qb" onclick="openMo('upgM')"><i class="fas fa-crown" style="color:#e040fb"></i><span>Upgrade</span></div>
+  </div>
+  <div class="stit"><i class="fas fa-person-running"></i> Tumhara Character</div>
+  <div class="char-area">
+    <div class="char-gnd"></div>
+    <div class="sm idle" id="mCh">
+      <div class="sm-h"></div><div class="sm-b"></div>
+      <div class="sm-al"></div><div class="sm-ar"></div>
+      <div class="sm-ll"></div><div class="sm-lr"></div>
+    </div>
+  </div>
+  <div class="ca">
+    <button class="on" onclick="setAnim('idle',this)">Idle</button>
+    <button onclick="setAnim('walk',this)">Walk</button>
+    <button onclick="setAnim('run',this)">Run</button>
+    <button onclick="setAnim('sit',this)">Sit</button>
+  </div>
+  <div class="stit"><i class="fas fa-clipboard-list"></i> Business Tasks</div>
+  <div id="tList"></div>
+  <div class="stit"><i class="fas fa-people-group"></i> Team (Max 5)</div>
+  <div id="tmList"></div>
+  <button class="btn btn-o" onclick="openMo('joinM')" style="margin-bottom:16px"><i class="fas fa-user-plus"></i> Team Member Add Karo</button>
+</div>
+
+<!-- TASK PLAY -->
+<div id="tplay" class="scr">
+  <div class="tp-h">
+    <button class="btn btn-sm btn-o" onclick="exitTP()"><i class="fas fa-arrow-left"></i> Back</button>
+    <div class="tp-t" id="tpTi">Task</div>
+    <div class="tp-tm" id="tpTm">30</div>
+  </div>
+  <div style="height:100px;display:flex;align-items:center;justify-content:center">
+    <div class="sm walk" id="tpCh" style="transform:scale(.7)">
+      <div class="sm-h"></div><div class="sm-b"></div>
+      <div class="sm-al"></div><div class="sm-ar"></div>
+      <div class="sm-ll"></div><div class="sm-lr"></div>
+    </div>
+  </div>
+  <div class="sc-box" id="tpSc"></div>
+  <div class="opts" id="tpOp"></div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="mo" id="depM">
+  <div class="md">
+    <button class="md-c" onclick="closeMo('depM')"><i class="fas fa-times"></i></button>
+    <div class="md-t"><i class="fas fa-wallet"></i> Deposit</div>
+    <p style="text-align:center;font-size:12px;color:var(--mut);margin-bottom:10px">One-time deposit to start earning</p>
+    <div class="dep-amt">&#8377;20</div>
+    <a id="depLnk" href="upi://pay?pa=montusoni@fam&pn=Montusoni&am=100&cu=INR" class="btn btn-g" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:10px" onclick="simDep()">
+      <i class="fas fa-arrow-up"></i> UPI Se Pay Karo
+    </a>
+    <p style="text-align:center;font-size:9px;color:var(--mut)">Payment ke baad balance add hoga</p>
+  </div>
+</div>
+<div class="mo" id="wdM">
+  <div class="md">
+    <button class="md-c" onclick="closeMo('wdM')"><i class="fas fa-times"></i></button>
+    <div class="md-t"><i class="fas fa-money-bill-transfer"></i> Withdraw</div>
+    <p style="text-align:center;font-size:12px;color:var(--mut);margin-bottom:6px">Minimum &#8377;110 required</p>
+    <div class="dep-amt" id="wdBal">&#8377;0</div>
+    <div class="ig"><i class="fas fa-hashtag"></i><input id="wdUpi" placeholder="Tumhara UPI ID"></div>
+    <button class="btn btn-gr" onclick="doWd()">Withdraw Request</button>
+  </div>
+</div>
+<div class="mo" id="refM">
+  <div class="md">
+    <button class="md-c" onclick="closeMo('refM')"><i class="fas fa-times"></i></button>
+    <div class="md-t"><i class="fas fa-gift"></i> Referral</div>
+    <p style="text-align:center;font-size:12px;color:var(--mut);margin-bottom:6px">Har referral pe &#8377;20 milega!</p>
+    <div class="code-bx">
+      <div style="font-size:9px;color:var(--mut);margin-bottom:4px">TUMHARA REFERRAL CODE</div>
+      <div class="code-tx" id="myRC">------</div>
+      <button class="btn btn-sm btn-g" style="margin-top:8px" onclick="copyC('myRC')"><i class="fas fa-copy"></i> Copy</button>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--mut);text-align:center">Referrals: <b style="color:var(--gold)" id="tRefs">0</b> | Earned: <b style="color:var(--green)" id="rEarn">0</b></div>
+  </div>
+</div>
+<div class="mo" id="upgM">
+  <div class="md">
+    <button class="md-c" onclick="closeMo('upgM')"><i class="fas fa-times"></i></button>
+    <div class="md-t"><i class="fas fa-crown"></i> Upgrade to Pro</div>
+    <div class="dep-amt">&#8377;99.9</div>
+    <ul class="ul">
+      <li><i class="fas fa-check-circle"></i> Unlimited team members</li>
+      <li><i class="fas fa-check-circle"></i> Premium tasks unlock</li>
+      <li><i class="fas fa-check-circle"></i> 2x earning multiplier</li>
+      <li><i class="fas fa-check-circle"></i> Priority withdrawal</li>
+      <li><i class="fas fa-check-circle"></i> Pro badge on profile</li>
+    </ul>
+    <a href="upi://pay?pa=montusoni@fam&pn=Montusoni&am=100&cu=INR" class="btn btn-g" style="display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none" onclick="simUpg()">
+      <i class="fas fa-crown"></i> Upgrade Karo
+    </a>
+  </div>
+</div>
+<div class="mo" id="joinM">
+  <div class="md">
+    <button class="md-c" onclick="closeMo('joinM')"><i class="fas fa-times"></i></button>
+    <div class="md-t"><i class="fas fa-link"></i> Team Join</div>
+    <p style="font-size:12px;color:var(--mut);margin-bottom:10px">Dost ka join code daal ke team join karo</p>
+    <div class="ig"><i class="fas fa-key"></i><input id="jCode" placeholder="Join Code daalo"></div>
+    <button class="btn btn-g" style="margin-bottom:10px" onclick="joinTm()">Join Karo</button>
+    <div style="text-align:center;font-size:11px;color:var(--mut);margin:10px 0">--- YA ---</div>
+    <div class="code-bx">
+      <div style="font-size:9px;color:var(--mut);margin-bottom:4px">TUMHARA JOIN CODE (Dosto ko bhejo)</div>
+      <div class="code-tx" id="myJC">------</div>
+      <button class="btn btn-sm btn-g" style="margin-top:8px" onclick="shareJC()"><i class="fas fa-copy"></i> Copy & Share</button>
+    </div>
+  </div>
+</div>
+<div class="mo" id="profM">
+  <div class="md" style="text-align:center">
+    <button class="md-c" onclick="closeMo('profM')"><i class="fas fa-times"></i></button>
+    <div class="dh-av" style="width:60px;height:60px;font-size:24px;margin:0 auto 10px" id="pAv">U</div>
+    <div style="font-size:16px;font-weight:800" id="pNm">User</div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:14px" id="pEm">user@email.com</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:var(--card2);padding:10px;border-radius:10px"><div style="font-size:9px;color:var(--mut)">Balance</div><div style="font-family:'Orbitron';color:var(--gold);font-weight:700;font-size:14px" id="pBal">0</div></div>
+      <div style="background:var(--card2);padding:10px;border-radius:10px"><div style="font-size:9px;color:var(--mut)">Tasks</div><div style="font-family:'Orbitron';color:var(--green);font-weight:700;font-size:14px" id="pTsk">0</div></div>
+      <div style="background:var(--card2);padding:10px;border-radius:10px"><div style="font-size:9px;color:var(--mut)">Referrals</div><div style="font-family:'Orbitron';color:var(--blue);font-weight:700;font-size:14px" id="pRef">0</div></div>
+      <div style="background:var(--card2);padding:10px;border-radius:10px"><div style="font-size:9px;color:var(--mut)">Status</div><div style="font-family:'Orbitron';color:#e040fb;font-weight:700;font-size:14px" id="pSt">Free</div></div>
+    </div>
+    <button class="btn btn-r" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav" id="bNav">
+  <div class="ni on" onclick="navGo('home',this)"><i class="fas fa-home"></i><span>Home</span></div>
+  <div class="ni" onclick="navGo('tasks',this)"><i class="fas fa-clipboard-list"></i><span>Tasks</span></div>
+  <div class="ni" onclick="navGo('team',this)"><i class="fas fa-people-group"></i><span>Team</span></div>
+  <div class="ni" onclick="openMo('refM')"><i class="fas fa-gift"></i><span>Refer</span></div>
+  <div class="ni" onclick="openMo('profM')"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+
+<script>
+/* ================================================
+   BUSINESS TASK - Complete Game
+   ================================================ */
+
+// ===== BG PARTICLES =====
+var cv=document.getElementById('bgC'),cx=cv.getContext('2d'),pts=[];
+function rsz(){cv.width=innerWidth;cv.height=innerHeight}
+addEventListener('resize',rsz);rsz();
+function Pt(){this.x=Math.random()*cv.width;this.y=Math.random()*cv.height;this.s=Math.random()*1.8+.4;this.vy=-Math.random()*.25-.05;this.vx=(Math.random()-.5)*.15;this.o=Math.random()*.35+.05;this.c=Math.random()>.75?'#f0b90b':'#1e3050'}
+Pt.prototype.up=function(){this.y+=this.vy;this.x+=this.vx;if(this.y<0){this.y=cv.height;this.x=Math.random()*cv.width}};
+Pt.prototype.dr=function(){cx.beginPath();cx.arc(this.x,this.y,this.s,0,6.28);cx.fillStyle=this.c;cx.globalAlpha=this.o;cx.fill();cx.globalAlpha=1};
+for(var i=0;i<50;i++)pts.push(new Pt());
+(function aBg(){cx.clearRect(0,0,cv.width,cv.height);for(var i=0;i<pts.length;i++){pts[i].up();pts[i].dr()}requestAnimationFrame(aBg)})();
+
+// ===== TOAST =====
+function toast(m,t){t=t||'i';var d=document.createElement('div');d.className='toast toast-'+t;d.textContent=m;document.getElementById('toasts').appendChild(d);setTimeout(function(){d.style.opacity='0';d.style.transition='opacity .3s';setTimeout(function(){d.remove()},300)},2500)}
+
+// ===== CONFETTI =====
+function confetti(){var cols=['#f0b90b','#ffd54f','#00e676','#29b6f6','#e040fb','#ff3d57'];for(var i=0;i<35;i++){var c=document.createElement('div');c.className='cfp';c.style.left=Math.random()*100+'vw';c.style.top='-10px';c.style.background=cols[Math.floor(Math.random()*cols.length)];c.style.borderRadius=Math.random()>.5?'50%':'2px';var sz=Math.random()*8+4;c.style.width=sz+'px';c.style.height=sz+'px';c.style.animationDuration=(Math.random()*2+2)+'s';c.style.animationDelay=(Math.random()*.4)+'s';document.body.appendChild(c);setTimeout(function(el){el.remove()},4000,c)}}
+
+// ===== RIPPLE =====
+document.addEventListener('click',function(e){var b=e.target.closest('.btn,.qb,.ni');if(!b)return;var r=document.createElement('span');r.className='rip';var rc=b.getBoundingClientRect();var sz=Math.max(rc.width,rc.height);r.style.width=r.style.height=sz+'px';r.style.left=e.clientX-rc.left-sz/2+'px';r.style.top=e.clientY-rc.top-sz/2+'px';b.style.position='relative';b.appendChild(r);setTimeout(function(){r.remove()},500)});
+
+// ===== SCREEN SWITCHING =====
+function goScr(id){var all=document.querySelectorAll('.scr');for(var i=0;i<all.length;i++)all[i].classList.remove('on');document.getElementById(id).classList.add('on')}
+
+// ===== MODAL =====
+function openMo(id){document.getElementById(id).classList.add('on')}
+function closeMo(id){document.getElementById(id).classList.remove('on')}
+document.querySelectorAll('.mo').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('on')})});
+
+// ===== TASKS DATA =====
+var TASKS=[
+{id:1,name:"Supply Chain Setup",desc:"Saman ki supply chain banao",reward:8,diff:"easy",
+sc:"Tumhe 100 units mobile cover khareedne hain. Teen suppliers hain:\n\nA) Rs.50/unit — delivery 7 din\nB) Rs.45/unit — delivery 15 din\nC) Rs.55/unit — delivery 3 din\n\nTumhari deadline 10 din hai. Kaunse supplier se khareedoge?",
+opts:["Supplier A — Rs.50, 7 din mein milega","Supplier B — Sasta par time nahi milega","Supplier C — Fast par mehnga","Kuch nahi khareedunga"],ans:0},
+{id:2,name:"Client Meeting",desc:"Client se deal final karo",reward:10,diff:"easy",
+sc:"Ek client 500 t-shirts maang raha hai:\n\nA) Rs.200/t-shirt — premium quality\nB) Rs.120/t-shirt — normal quality\nC) Rs.80/t-shirt — low quality\n\nClient ne budget nahi bataya. Kya pitch karoge?",
+opts:["Premium — Rs.200 pe pitch karo","Normal — value for money dikao","Low — sabse saste mein deal","Pehle budget poocho"],ans:3},
+{id:3,name:"Price Negotiation",desc:"Vendor se best deal nikalo",reward:12,diff:"easy",
+sc:"Vendor Rs.100 pe product de raha hai. 50 units chahiye.\n\nA) Seedha 20% discount maango\nB) Bulk order batake 30% discount maango\nC) Kisi aur vendor se compare karo\nD) Rs.100 pe hi le lo",
+opts:["Simple 20% discount","Bulk power — 30% discount","Compare karo phir aao","Rs.100 pe le lo — time save"],ans:1},
+{id:4,name:"Marketing Strategy",desc:"Limited budget mein max reach",reward:15,diff:"medium",
+sc:"Rs.5000 marketing budget hai. Kaunsa strategy best?\n\nA) Facebook/Insta ads — targeted\nB) Pamphlets — area wise\nC) Influencer ko free product — review\nD) Sab pe equally spend karo",
+opts:["FB/Insta ads — data driven","Pamphlets — local reach","Influencer barter — trust","Equal divide — safe"],ans:2},
+{id:5,name:"Cash Flow Crisis",desc:"Business mein cash low hai",reward:18,diff:"medium",
+sc:"Cash low hai. Payment 30 din baad, salaries abhi.\n\nA) Staff ko late payment bol do\nB) Bank se short-term loan lo\nC) Clients se advance maango\nD) Marketing band karo",
+opts:["Late payment — trust loss","Loan — interest lagega","Advance — professional","Expenses cut — growth ruke"],ans:2},
+{id:6,name:"Hire or Outsource",desc:"Naya employee ya freelancer?",reward:14,diff:"medium",
+sc:"2 mahine ka project. Developer chahiye.\n\nA) Full-time — Rs.40,000/month\nB) Freelancer — Rs.60,000 total\nC) Khud karo — save ho jayega\nD) Intern lo — free mein",
+opts:["Full-time — long term","Freelancer — smart choice","Khud karo — time problem","Intern — quality risk"],ans:1},
+{id:7,name:"Launch Timing",desc:"Kab launch kare?",reward:16,diff:"medium",
+sc:"Naya product ready hai. Launch timing?\n\nA) Diwali ke pehle — demand high\nB) January — naya year\nC) Jaldi launch — pehle aao\nD) Competitor ka wait karo",
+opts:["Diwali — peak season","January — fresh start","Jaldi — first mover","Wait — learn from others"],ans:0},
+{id:8,name:"Deal or No Deal",desc:"Bada order ya safe play?",reward:22,diff:"hard",
+sc:"Big company 5000 units at Rs.30 — tumhara cost Rs.28.\n\nA) Deal accept — volume se profit\nB) Negotiate — Rs.35 try karo\nC) Reject — profit nahi\nD) Counter — 3000 units at Rs.40",
+opts:["Accept — big client","Negotiate — better rate","Reject — wastage","Counter — smart middle"],ans:3},
+{id:9,name:"Business Expansion",desc:"Naye city mein expand?",reward:25,diff:"hard",
+sc:"Dusre city mein expand ka opportunity.\n\nA) Turant expand — first mover\nB) 1 mahine research karo\nC) Franchise model — risk share\nD) Abhi nahi — focus current",
+opts:["Turant — aggressive","Research — data based","Franchise — low risk","Focus — consolidate"],ans:2},
+{id:10,name:"Crisis Management",desc:"Product mein defect!",reward:28,diff:"hard",
+sc:"1000 products mein defect. Customers complain.\n\nA) Ignore — chhota issue\nB) Full recall — refund\nC) Replacement + apology\nD) Social media pe transparency",
+opts:["Ignore — hope it goes away","Full recall — expensive","Replacement + apology","Social media handle"],ans:2},
+{id:11,name:"Investment Pick",desc:"Profit kaha invest kare?",reward:20,diff:"medium",
+sc:"Rs.50,000 extra profit. Kaha invest?\n\nA) Fixed deposit — 7% safe\nB) Marketing — growth\nC) R&D — naya product\nD) Stock market — gamble",
+opts:["FD — safe boring","Marketing — immediate growth","R&D — long term game","Stocks — high risk"],ans:2},
+{id:12,name:"Partnership Deal",desc:"Equity kya do partner ko?",reward:24,diff:"hard",
+sc:"Expert 40% equity maang raha hai.\n\nA) 40% do — expert zaroori\nB) 20% offer — max\nC) 10% + salary — hybrid\nD) No partnership — khud karo",
+opts:["40% — need expertise","20% — fair deal","10%+salary — hybrid","No — full control"],ans:1}
+];
+
+// ===== STATE =====
+var U=null,curTask=null,tInt=null,tVal=30;
+function gU(){try{return JSON.parse(localStorage.getItem('bt_u'))}catch(e){return null}}
+function sU(u){localStorage.setItem('bt_u',JSON.stringify(u))}
+function gAll(){try{return JSON.parse(localStorage.getItem('bt_all'))||[]}catch(e){return[]}}
+function sAll(a){localStorage.setItem('bt_all',JSON.stringify(a))}
+
+// ===== GEN CODE =====
+function gCode(n){n=n||6;var c='ABCDEFGHJKMNPQRSTUVWXYZ23456789',r='';for(var i=0;i<n;i++)r+=c[Math.floor(Math.random()*c.length)];return r}
+
+// ===== SPLASH → AUTH =====
+setTimeout(function(){
+  U=gU();
+  if(U){enterDash()}
+  else{goScr('auth');checkRefParam()}
+},2200);
+
+function checkRefParam(){
+  var p=new URLSearchParams(location.search);
+  var r=p.get('ref');
+  if(r){authTab('signup');document.getElementById('sR').value=r.toUpperCase();document.getElementById('refW').classList.add('show')}
+}
+
+// ===== AUTH TABS =====
+function authTab(t){
+  var tabs=document.querySelectorAll('.auth-tab');
+  tabs[0].classList.toggle('on',t==='login');
+  tabs[1].classList.toggle('on',t==='signup');
+  document.getElementById('loginF').style.display=t==='login'?'block':'none';
+  document.getElementById('signF').style.display=t==='signup'?'block':'none';
+  if(t==='signup')document.getElementById('refW').classList.add('show');
+  else document.getElementById('refW').classList.remove('show');
+}
+
+// ===== SIGNUP =====
+function doSignup(){
+  var nm=document.getElementById('sN').value.trim();
+  var em=document.getElementById('sE').value.trim();
+  var pw=document.getElementById('sP').value;
+  var rf=document.getElementById('sR').value.trim().toUpperCase();
+  if(!nm){toast('Naam daal bhai!','e');return}
+  if(!em){toast('Email ya phone daal!','e');return}
+  if(pw.length<6){toast('Password 6+ chars!','e');return}
+  var all=gAll();
+  for(var i=0;i<all.length;i++){if(all[i].em===em){toast('Ye email already registered!','e');return}}
+  var rc=gCode(),jc=gCode(8),rb=0;
+  if(rf){
+    for(var i=0;i<all.length;i++){
+      if(all[i].rc===rf){
+        rb=20;all[i].bal+=20;all[i].refE+=20;all[i].tRef++;
+        sU(all[i]);
+        toast('Rs.20 referral bonus mila!','s');
+        break;
+      }
+    }
+    
+  }
+  var u={nm:nm,em:em,pw:pw,bal:rb,won:0,refE:rb,dep:0,rc:rc,jc:jc,tRef:0,done:[],team:[],pro:false,ts:Date.now()};
+  all.push(u);sAll(all);sU(u);U=u;
+  if(rb===0)toast('Account bana! Welcome!','s');
+  confetti();enterDash();
+}
+
+// ===== LOGIN =====
+function doLogin(){
+  var em=document.getElementById('lE').value.trim();
+  var pw=document.getElementById('lP').value;
+  if(!em||!pw){toast('Email aur password daal!','e');return}
+  var all=gAll();
+  for(var i=0;i<all.length;i++){
+    if(all[i].em===em&&all[i].pw===pw){
+      sU(all[i]);U=all[i];
+      toast('Welcome back, '+U.nm+'!','s');
+      enterDash();return;
+    }
+  }
+  toast('Galat email ya password!','e');
+}
+
+// ===== LOGOUT =====
+function doLogout(){
+  localStorage.removeItem('bt_u');U=null;
+  document.getElementById('bNav').classList.remove('show');
+  goScr('auth');
+  document.getElementById('lE').value='';
+  document.getElementById('lP').value='';
+  toast('Logged out!','i');
+}
+
+// ===== ENTER DASHBOARD =====
+function enterDash(){
+  goScr('dash');
+  document.getElementById('bNav').classList.add('show');
+  refreshDash();
+}
+
+// ===== REFRESH DASHBOARD =====
+function refreshDash(){
+  if(!U)return;U=gU()||U;
+  document.getElementById('bAmt').textContent=U.bal.toFixed(2);
+  document.getElementById('bWon').textContent=U.won;
+  document.getElementById('bRef').textContent=U.refE;
+  document.getElementById('bDep').textContent=U.dep;
+  document.getElementById('dAv').textContent=U.nm.charAt(0).toUpperCase();
+  document.getElementById('wdT').textContent=U.bal.toFixed(0)+' / 110';
+  document.getElementById('wdP').style.width=Math.min(100,(U.bal/110)*100)+'%';
+  document.getElementById('myRC').textContent=U.rc;
+  document.getElementById('myJC').textContent=U.jc;
+  document.getElementById('tRefs').textContent=U.tRef;
+  document.getElementById('rEarn').textContent=U.refE;
+  document.getElementById('pAv').textContent=U.nm.charAt(0).toUpperCase();
+  document.getElementById('pNm').textContent=U.nm;
+  document.getElementById('pEm').textContent=U.em;
+  document.getElementById('pBal').textContent='Rs.'+U.bal.toFixed(0);
+  document.getElementById('pTsk').textContent=U.done.length;
+  document.getElementById('pRef').textContent=U.tRef;
+  document.getElementById('pSt').textContent=U.pro?'PRO':'Free';
+  renderTasks();renderTeam();
+}
+
+// ===== RENDER TASKS =====
+function renderTasks(){
+  var c=document.getElementById('tList');c.innerHTML='';
+  for(var i=0;i<TASKS.length;i++){
+    var t=TASKS[i],dn=U.done.indexOf(t.id)>=0;
+    var d=document.createElement('div');d.className='tc'+(dn?' done':'');
+    d.innerHTML='<div class="tc-t"><div class="tc-n">'+(dn?'<i class="fas fa-check-circle" style="color:var(--green)"></i> ':'')+t.name+'</div><div class="tc-r">+Rs.'+t.reward+'</div></div><div class="tc-d">'+t.desc+'</div><div class="tc-b"><span class="tdf '+t.diff+'">'+t.diff.toUpperCase()+'</span><span style="font-size:10px;color:var(--mut)">'+(dn?'Done':'Tap to Play')+'</span></div>';
+    if(!dn)(function(tk){d.onclick=function(){startTask(tk)}})(t);
+    c.appendChild(d);
+  }
+}
+
+// ===== RENDER TEAM =====
+function renderTeam(){
+  var c=document.getElementById('tmList');c.innerHTML='';
+  var mx=U.pro?99:5;
+  // Self
+  var s=document.createElement('div');s.className='tmc';
+  s.innerHTML='<div class="tm-av" style="background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--bg)">'+U.nm.charAt(0).toUpperCase()+'</div><div class="tm-i"><div class="tm-n">'+U.nm+' (You)</div><div class="tm-r">Team Leader</div></div><span class="tm-s onl">Online</span>';
+  c.appendChild(s);
+  // Members
+  for(var i=0;i<U.team.length;i++){
+    var m=U.team[i],d=document.createElement('div');d.className='tmc';
+    d.innerHTML='<div class="tm-av" style="background:var(--card2);color:var(--blue)">'+m.nm.charAt(0).toUpperCase()+'</div><div class="tm-i"><div class="tm-n">'+m.nm+'</div><div class="tm-r">Joined via code</div></div><span class="tm-s '+(m.onl?'onl':'off')+'">'+(m.onl?'Online':'Offline')+'</span>';
+    c.appendChild(d);
+  }
+  var rem=mx-U.team.length-1;
+  if(rem>0){
+    var e=document.createElement('div');e.className='tmc';e.style.opacity='.4';
+    e.innerHTML='<div class="tm-av" style="background:var(--card2);color:var(--mut)"><i class="fas fa-plus"></i></div><div class="tm-i"><div class="tm-n">'+rem+' slot'+(rem>1?'s':'')+' empty</div><div class="tm-r">Share join code</div></div><span class="tm-s wait">Waiting</span>';
+    c.appendChild(e);
+  }
+}
+
+// ===== CHARACTER ANIM =====
+function setAnim(a,btn){
+  var ch=document.getElementById('mCh');ch.className='sm '+a;
+  var btns=document.querySelectorAll('.ca button');for(var i=0;i<btns.length;i++)btns[i].classList.remove('on');
+  if(btn)btn.classList.add('on');
+}
+
+// ===== START TASK =====
+function startTask(t){
+  if(U.dep<=0){toast('Pehle Rs.20 deposit karo!','e');openMo('depM');return}
+  curTask=t;goScr('tplay');
+  document.getElementById('tpTi').textContent=t.name;
+  document.getElementById('tpSc').innerHTML='<div class="sc-txt">'+t.sc.replace(/\n/g,'<br>')+'</div>';
+  var od=document.getElementById('tpOp');od.innerHTML='';
+  var lt=['A','B','C','D'];
+  for(var i=0;i<t.opts.length;i++){
+    var b=document.createElement('button');b.className='ob';
+    b.innerHTML='<span class="ol">'+lt[i]+'</span><span>'+t.opts[i]+'</span>';
+    (function(idx,btn){btn.onclick=function(){pickAns(idx,btn)}})(i,b);
+    od.appendChild(b);
+  }
+  var dt={easy:35,medium:25,hard:18};tVal=dt[t.diff]||25;
+  document.getElementById('tpTm').textContent=tVal;
+  document.getElementById('tpTm').style.color='var(--gold)';
+  document.getElementById('tpCh').className='sm walk';
+  clearInterval(tInt);
+  tInt=setInterval(function(){
+    tVal--;document.getElementById('tpTm').textContent=tVal;
+    if(tVal<=5)document.getElementById('tpTm').style.color='var(--red)';
+    if(tVal<=0){clearInterval(tInt);timeUp()}
+  },1000);
+}
+
+function pickAns(idx,btn){
+  clearInterval(tInt);
+  document.getElementById('tpTm').style.color='var(--gold)';
+  var ans=curTask.ans;
+  var allBtns=document.querySelectorAll('.ob');
+  for(var i=0;i<allBtns.length;i++)allBtns[i].disabled=true;
+  if(idx===ans){
+    btn.classList.add('ok');
+    document.getElementById('tpCh').className='sm idle';
+    var rw=curTask.reward*(U.pro?2:1);
+    U.won+=rw;U.bal+=rw;U.done.push(curTask.id);
+    if(U.bal>=80)toast('Hard level! Rs.'+rw+' mila — dimag lagaya!','s');
+    else toast('Sahi jawab! Rs.'+rw+' mila!','s');
+    confetti();sU(U);syncAll();
+  }else{
+    btn.classList.add('no');allBtns[ans].classList.add('ok');
+    document.getElementById('tpCh').className='sm sit';
+    toast('Galat jawab! Sahi option dekho.','e');
+  }
+  setTimeout(exitTP,1800);
+}
+
+function timeUp(){
+  var allBtns=document.querySelectorAll('.ob');
+  for(var i=0;i<allBtns.length;i++)allBtns[i].disabled=true;
+  allBtns[curTask.ans].classList.add('ok');
+  document.getElementById('tpCh').className='sm sit';
+  toast('Time out!','e');
+  setTimeout(exitTP,1800);
+}
+
+function exitTP(){
+  clearInterval(tInt);goScr('dash');refreshDash();
+}
+
+// ===== SYNC ALL USERS =====
+function syncAll(){
+  var all=gAll();for(var i=0;i<all.length;i++){if(all[i].em===U.em){all[i]=U;break}}sAll(all);
+}
+
+// ===== DEPOSIT SIM =====
+function simDep(){
+  if(U&&U.dep<=0){
+    setTimeout(function(){
+      U.dep=20;U.bal+=20;sU(U);syncAll();
+      toast('Rs.20 deposit ho gaya! Ab tasks khelo!','s');
+      confetti();refreshDash();closeMo('depM');
+    },3000);
+  }
+}
+
+// ===== UPGRADE SIM =====
+function simUpg(){
+  if(U&&!U.pro){
+    setTimeout(function(){
+      U.pro=true;sU(U);syncAll();
+      toast('PRO ho gaye! 2x earning + unlimited team!','s');
+      confetti();confetti();refreshDash();closeMo('upgM');
+    },3000);
+  }
+}
+
+// ===== WITHDRAW =====
+function doWd(){
+  var upi=document.getElementById('wdUpi').value.trim();
+  if(!upi){toast('UPI ID daal!','e');return}
+  if(U.bal<110){toast('Minimum Rs.110 chahiye! Abhi Rs.'+U.bal.toFixed(0)+' hai.','e');return}
+  U.bal-=110;sU(U);syncAll();
+  closeMo('wdM');toast('Withdrawal request! Rs.110 '+upi+' pe 24-48hr mein.','s');
+  confetti();refreshDash();
+}
+
+// ===== COPY CODE =====
+function copyC(id){
+  var t=document.getElementById(id).textContent;
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast('Code copied!','s')});
+  else toast('Code: '+t,'i');
+}
+
+// ===== SHARE JOIN CODE =====
+function shareJC(){
+  var t='Business Task mein join karo! Code: '+U.jc;
+  if(navigator.share)navigator.share({title:'Business Task',text:t}).catch(function(){});
+  else if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast('Join code copied!','s')});
+  else toast('Code: '+U.jc,'i');
+}
+
+// ===== JOIN TEAM =====
+function joinTm(){
+  var code=document.getElementById('jCode').value.trim().toUpperCase();
+  if(!code){toast('Join code daal!','e');return}
+  if(code===U.jc){toast('Apna code nahi daal sakta!','e');return}
+  var all=gAll();var host=null;
+  for(var i=0;i<all.length;i++){if(all[i].jc===code){host=all[i];break}}
+  if(!host){toast('Ye code kisi ka bhi nahi hai!','e');return}
+  var mx=host.pro?99:5;
+  if(host.team.length>=mx-1){toast('Team full hai!','e');return}
+  host.team.push({nm:U.nm,em:U.em,onl:true});
+  sU(host);
+  for(var i=0;i<all.length;i++){if(all[i].em===host.em){all[i]=host;break}}
+  U.team.push({nm:host.nm,em:host.em,onl:true});
+  sU(U);
+  for(var i=0;i<all.length;i++){if(all[i].em===U.em){all[i]=U;break}}
+  sAll(all);
+  closeMo('joinM');toast(host.nm+' ki team join ho gaye!','s');refreshDash();
+}
+
+// ===== NAV =====
+function navGo(s,el){
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on')});
+  el.classList.add('on');
+  if(s==='tasks')document.getElementById('tList').scrollIntoView({behavior:'smooth'});
+  else if(s==='team')document.getElementById('tmList').scrollIntoView({behavior:'smooth'});
+  else document.getElementById('dash').scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== RANDOM TEAM STATUS =====
+setInterval(function(){
+  if(!U||!U.team.length)return;
+  for(var i=0;i<U.team.length;i++)U.team[i].onl=Math.random()>.3;
+  sU(U);renderTeam();
+},12000);
+</script>
+</body>
+</html>
